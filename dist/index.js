@@ -8,6 +8,26 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+function validateAPIKey(apiKey) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return new Promise((res, _) => fetch(`https://api.mapy.cz/v1/timezone/list-timezones?apikey=${apiKey}`)
+            .then((d) => d.json())
+            .then((d) => res(!!(d === null || d === void 0 ? void 0 : d['timezones']))));
+    });
+}
+let apiKey = null;
+(() => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    while (true) {
+        apiKey = prompt('Zadejte API klíč od Mapy.cz');
+        if (apiKey == null ||
+            apiKey.length === 0 ||
+            !(yield validateAPIKey(apiKey)))
+            continue;
+        break;
+    }
+    (_a = document.querySelector('#root')) === null || _a === void 0 ? void 0 : _a.classList.remove('hidden');
+}))();
 const fileSelect = document.querySelector('#fileinput');
 const log = document.querySelector('#log');
 const downloadBtn = document.querySelector('#download');
@@ -21,11 +41,11 @@ function printLog(message, isError = false) {
     log.appendChild(paragraph);
 }
 const HAS_HEADER = true;
-const API_KEY = "<klic>";
-const API_PATH = `https://api.mapy.cz/v1/geocode?apikey=${API_KEY}`;
+// const API_KEY = '<klic>';
+const API_PATH = 'https://api.mapy.cz/v1/geocode';
 function getCoords(address) {
     return new Promise((res, rej) => {
-        fetch(API_PATH + `&query="${address}"&lang=cs&limit=1`)
+        fetch(API_PATH + `?apikey=${apiKey}&query="${address}"&lang=cs&limit=1`)
             .then((d) => d.json())
             .then((d) => {
             var _a, _b;
@@ -47,7 +67,7 @@ const createWpt = (coords, name, description) => {
 };
 function createGPX() {
     const boilerplate = `<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-    <gpx version="1.1" creator="Microrisc Map tool" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <gpx version="1.1" creator="Microrisc Map tool" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
   </gpx>`;
     const parser = new DOMParser();
     const xml = parser.parseFromString(boilerplate, 'text/xml');
@@ -79,7 +99,7 @@ function handleRows(rows) {
     });
 }
 fileSelect === null || fileSelect === void 0 ? void 0 : fileSelect.addEventListener('change', (e) => __awaiter(void 0, void 0, void 0, function* () {
-    resultGPX = "";
+    resultGPX = '';
     downloadBtn.classList.add('hidden');
     const select = e.target;
     if (!select)

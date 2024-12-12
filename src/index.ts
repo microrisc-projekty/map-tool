@@ -1,3 +1,27 @@
+async function validateAPIKey(apiKey: string) {
+	return new Promise((res, _) =>
+		fetch(`https://api.mapy.cz/v1/timezone/list-timezones?apikey=${apiKey}`)
+			.then((d) => d.json())
+			.then((d) => res(!!d?.['timezones']))
+	);
+}
+
+let apiKey: string | null = null;
+(async () => {
+	while (true) {
+		apiKey = prompt('Zadejte API klíč od Mapy.cz');
+
+		if (
+			apiKey == null ||
+			apiKey.length === 0 ||
+			!(await validateAPIKey(apiKey))
+		)
+			continue;
+		break;
+	}
+	document.querySelector('#root')?.classList.remove('hidden');
+})();
+
 const fileSelect = document.querySelector('#fileinput');
 const log = document.querySelector('#log');
 const downloadBtn = document.querySelector('#download')!;
@@ -11,16 +35,15 @@ function printLog(message: string, isError: boolean = false) {
 }
 
 const HAS_HEADER = true;
-const API_KEY = "<klic>";
-const API_PATH = `https://api.mapy.cz/v1/geocode?apikey=${API_KEY}`;
-
+// const API_KEY = '<klic>';
+const API_PATH = 'https://api.mapy.cz/v1/geocode';
 interface Coords {
 	lat: number;
 	lon: number;
 }
 function getCoords(address: string): Promise<Coords | null> {
 	return new Promise((res, rej) => {
-		fetch(API_PATH + `&query="${address}"&lang=cs&limit=1`)
+		fetch(API_PATH + `?apikey=${apiKey}&query="${address}"&lang=cs&limit=1`)
 			.then((d) => d.json())
 			.then((d) => {
 				res(d?.['items']?.[0]?.['position'] || null);
@@ -44,7 +67,7 @@ const createWpt = (coords: Coords, name: string, description: string) => {
 
 function createGPX() {
 	const boilerplate = `<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-    <gpx version="1.1" creator="Microrisc Map tool" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <gpx version="1.1" creator="Microrisc Map tool" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
   </gpx>`;
 
 	const parser = new DOMParser();
@@ -82,7 +105,7 @@ async function handleRows(rows: string[][]) {
 	downloadBtn.classList.remove('hidden');
 }
 fileSelect?.addEventListener('change', async (e) => {
-  resultGPX = "";
+	resultGPX = '';
 	downloadBtn.classList.add('hidden');
 
 	const select = e.target as HTMLInputElement;
@@ -125,7 +148,10 @@ function download(filename: string, data: string) {
 }
 
 downloadBtn.addEventListener('click', () => {
-  if(resultGPX.length === 0) return;
+	if (resultGPX.length === 0) return;
 	const now = new Date();
-	download(`converted_${now.toLocaleDateString().replace('/', '-')}.gpx`, resultGPX);
+	download(
+		`converted_${now.toLocaleDateString().replace('/', '-')}.gpx`,
+		resultGPX
+	);
 });
