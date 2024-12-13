@@ -117,7 +117,7 @@ fileSelect === null || fileSelect === void 0 ? void 0 : fileSelect.addEventListe
         if (!data)
             return;
         try {
-            const parsed = Papa.parse(data);
+            const parsed = Papa.parse(data, { delimiter: ';' });
             const rows = parsed.data;
             yield handleRows(rows);
         }
