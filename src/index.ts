@@ -86,7 +86,8 @@ async function handleRows(rows: string[][]) {
 	for (let i = HAS_HEADER ? 1 : 0; i < rows.length; i++) {
 		const row = rows[i];
 		const name = row[0];
-		const address = row[1];
+
+		const address = row.slice(1).join(",");
 		const coords = await getCoords(address);
 		if (!coords) {
 			printLog(
