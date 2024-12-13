@@ -83,7 +83,7 @@ function handleRows(rows) {
         for (let i = HAS_HEADER ? 1 : 0; i < rows.length; i++) {
             const row = rows[i];
             const name = row[0];
-            const address = row[1];
+            const address = row.slice(1).join(",");
             const coords = yield getCoords(address);
             if (!coords) {
                 printLog(`Nepodařilo se získat souřadnice pro: ${name}, ${address}`, true);
